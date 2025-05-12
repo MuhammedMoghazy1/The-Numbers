@@ -20,7 +20,7 @@ st.title("🎬 Movie Franchises Box Office Dashboard")
 # Sidebar for MongoDB credentials
 st.sidebar.header("MongoDB Configuration")
 username = st.sidebar.text_input("MongoDB Username", value="muhammedmoghazycs")
-password = st.sidebar.text_input("MongoDB Password", type="23011495Mm")
+password = st.sidebar.text_input("MongoDB Password", type="password")
 cluster = st.sidebar.text_input("Cluster Name", value="cluster0.lqvtdrw")
 db_name = st.sidebar.text_input("Database Name", value="movie_franchises")
 collection_name = st.sidebar.text_input("Collection Name", value="box_office_data")
