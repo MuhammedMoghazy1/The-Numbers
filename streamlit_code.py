@@ -14,36 +14,36 @@ from urllib.parse import quote_plus
 import plotly.express as px
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="MongoDB Movie Dashboard", layout="wide")
-st.title("🎬 Movie Franchises Box Office Dashboard")
+# Sidebar inputs
+st.sidebar.title("MongoDB Connection")
+mongo_user = st.sidebar.text_input("MongoDB Username")
+mongo_pass = st.sidebar.text_input("MongoDB Password", type="password")
+mongo_cluster = st.sidebar.text_input("Cluster Name", value="cluster0")
+mongo_db = st.sidebar.text_input("Database", value="movie_franchises")
+mongo_col = st.sidebar.text_input("Collection", value="box_office_data")
 
-# Sidebar for MongoDB credentials
-st.sidebar.header("MongoDB Configuration")
-username = st.sidebar.text_input("MongoDB Username", value="muhammedmoghazycs")
-password = st.sidebar.text_input("MongoDB Password", type="password")
-cluster = st.sidebar.text_input("Cluster Name", value="cluster0.lqvtdrw")
-db_name = st.sidebar.text_input("Database Name", value="movie_franchises")
-collection_name = st.sidebar.text_input("Collection Name", value="box_office_data")
+# Only connect if all fields are filled
+if all([mongo_user, mongo_pass, mongo_cluster, mongo_db, mongo_col]):
+    try:
+        conn_str = f"mongodb+srv://{mongo_user}:{mongo_pass}@{mongo_cluster}.lqvtdrw.mongodb.net/?retryWrites=true&w=majority"
+        client = MongoClient(conn_str)
+        db = client[mongo_db]
+        collection = db[mongo_col]
 
-uploaded_file = st.file_uploader("Upload CSV File", type="csv")
+        # Get data from MongoDB
+        data = list(collection.find())
+        df = pd.DataFrame(data)
 
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    st.subheader("📋 Preview of Uploaded Data")
-    st.dataframe(df.head())
+        # Drop MongoDB's internal ID field
+        if '_id' in df.columns:
+            df.drop(columns=['_id'], inplace=True)
 
-    if st.button("Upload to MongoDB"):
-        try:
-            encoded_password = quote_plus(password)
-            connection_string = f"mongodb+srv://{username}:{encoded_password}@{cluster}.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tls=true"
-            client = MongoClient(connection_string)
-            db = client[db_name]
-            collection = db[collection_name]
-            data_dict = df.fillna("None").to_dict("records")
-            collection.insert_many(data_dict)
-            st.success("✅ Data inserted into MongoDB!")
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
+        st.success("Data loaded successfully from MongoDB!")
+        st.dataframe(df)
+    except Exception as e:
+        st.error(f"Could not load data: {e}")
+else:
+    st.warning("Please enter MongoDB credentials to connect.")
 
     # Clean & convert data
     try:
