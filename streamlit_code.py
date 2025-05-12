@@ -45,56 +45,70 @@ if all([mongo_user, mongo_pass, mongo_cluster, mongo_db, mongo_col]):
 else:
     st.warning("Please enter MongoDB credentials to connect.")
 
-    # Clean & convert data
-    try:
-        df['Domestic Box Office'] = df['Domestic Box Office'].replace('[\$,]', '', regex=True).astype(float)
-        df['Worldwide Box Office'] = df['Worldwide Box Office'].replace('[\$,]', '', regex=True).astype(float)
-        df['No. of Years'] = pd.to_numeric(df['No. of Years'], errors='coerce')
-        df = df[df['No. of Years'] > 0]
-        df['Box Office Per Year'] = df['Worldwide Box Office'] / df['No. of Years']
+try:
+    # Ensure the data is cleaned before plotting
+    df['Domestic Box Office'] = df['Domestic Box Office'].replace('[\$,]', '', regex=True).astype(float)
+    df['Worldwide Box Office'] = df['Worldwide Box Office'].replace('[\$,]', '', regex=True).astype(float)
+    df['No. of Years'] = pd.to_numeric(df['No. of Years'], errors='coerce')
+    df = df[df['No. of Years'] > 0]
+    df['Box Office Per Year'] = df['Worldwide Box Office'] / df['No. of Years']
 
-        st.subheader("📊 Visualizations")
+    # Display section header for visualizations
+    st.subheader("📊 Visualizations")
 
-        tab1, tab2, tab3 = st.tabs(["Top 15 Worldwide", "Top 10 Domestic (Pie)", "Box Office Per Year"])
+    # Create tabs for each plot
+    tab1, tab2, tab3 = st.tabs(["Top 15 Worldwide", "Top 10 Domestic (Pie)", "Box Office Per Year"])
 
-        with tab1:
-            top_15 = df.nlargest(15, 'Worldwide Box Office')
-            fig = px.bar(top_15,
-                         x='Worldwide Box Office',
-                         y='Franchise',
-                         orientation='h',
-                         title="Top 15 Franchises by Worldwide Box Office",
-                         labels={'Worldwide Box Office': 'Box Office ($)', 'Franchise': 'Franchise'},
-                         color='Worldwide Box Office',
-                         color_continuous_scale='Blues')
-            fig.update_layout(yaxis=dict(autorange="reversed"))
-            st.plotly_chart(fig, use_container_width=True)
+    # Tab 1: Top 15 Franchises by Worldwide Box Office
+    with tab1:
+        top_15 = df.nlargest(15, 'Worldwide Box Office')
+        st.write("Top 15 Franchises by Worldwide Box Office:")
+        st.write(top_15[['Franchise', 'Worldwide Box Office']])
 
-        with tab2:
-            top_10_domestic = df.nlargest(10, 'Domestic Box Office')
-            fig = px.pie(top_10_domestic,
-                         names='Franchise',
-                         values='Domestic Box Office',
-                         title='Top 10 Franchises by Domestic Box Office',
-                         hole=0.4)
-            st.plotly_chart(fig, use_container_width=True)
+        fig = px.bar(top_15,
+                     x='Worldwide Box Office',
+                     y='Franchise',
+                     orientation='h',
+                     title="Top 15 Franchises by Worldwide Box Office",
+                     labels={'Worldwide Box Office': 'Box Office ($)', 'Franchise': 'Franchise'},
+                     color='Worldwide Box Office',
+                     color_continuous_scale='Blues')
+        fig.update_layout(yaxis=dict(autorange="reversed"))
+        st.plotly_chart(fig, use_container_width=True)
 
-        with tab3:
-            top_10_per_year = df.nlargest(10, 'Box Office Per Year')
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=top_10_per_year['Box Office Per Year'],
-                y=top_10_per_year['Franchise'],
-                mode='markers+lines',
-                marker=dict(size=10, color='crimson'),
-                line=dict(width=2),
-                name="Box Office Per Year"
-            ))
-            fig.update_layout(title="Top 10 Franchises by Box Office Per Year",
-                              xaxis_title="Box Office Per Year ($)",
-                              yaxis=dict(autorange="reversed"),
-                              height=500)
-            st.plotly_chart(fig, use_container_width=True)
+    # Tab 2: Top 10 Franchises by Domestic Box Office (Pie Chart)
+    with tab2:
+        top_10_domestic = df.nlargest(10, 'Domestic Box Office')
+        st.write("Top 10 Franchises by Domestic Box Office:")
+        st.write(top_10_domestic[['Franchise', 'Domestic Box Office']])
 
-    except Exception as e:
-        st.warning(f"Could not render plots due to: {e}")
+        fig = px.pie(top_10_domestic,
+                     names='Franchise',
+                     values='Domestic Box Office',
+                     title='Top 10 Franchises by Domestic Box Office',
+                     hole=0.4)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Tab 3: Top 10 Franchises by Box Office Per Year (Scatter Plot)
+    with tab3:
+        top_10_per_year = df.nlargest(10, 'Box Office Per Year')
+        st.write("Top 10 Franchises by Box Office Per Year:")
+        st.write(top_10_per_year[['Franchise', 'Box Office Per Year']])
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=top_10_per_year['Box Office Per Year'],
+            y=top_10_per_year['Franchise'],
+            mode='markers+lines',
+            marker=dict(size=10, color='crimson'),
+            line=dict(width=2),
+            name="Box Office Per Year"
+        ))
+        fig.update_layout(title="Top 10 Franchises by Box Office Per Year",
+                          xaxis_title="Box Office Per Year ($)",
+                          yaxis=dict(autorange="reversed"),
+                          height=500)
+        st.plotly_chart(fig, use_container_width=True)
+
+except Exception as e:
+    st.warning(f"Could not render plots due to: {e}")
