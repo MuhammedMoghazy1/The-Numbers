@@ -15,7 +15,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Replace the URL below with the raw URL of your image from GitHub
-image_url = "https://github.com/MuhammedMoghazy1/The-Numbers/blob/main/images.jpg"
+image_url = "https://raw.githubusercontent.com/MuhammedMoghazy1/The-Numbers/main/images.jpg"
 
 # Display the logo at the top of the sidebar or main section
 st.sidebar.image(image_url, use_column_width=True)  # Sidebar logo
